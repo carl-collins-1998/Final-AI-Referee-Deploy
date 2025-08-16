@@ -1,9 +1,12 @@
 [phases.setup]
-nixPkgs = ["python311"]
-aptPkgs = ["libgl1-mesa-glx", "libglib2.0-0", "libsm6", "libxext6", "libxrender1", "libgomp1", "libgcc-s1", "libstdc++6"]
+nixPkgs = ["python311", "gcc", "glib", "libGL"]
 
 [phases.install]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+cmds = [
+    "python -m ensurepip",
+    "python -m pip install --upgrade pip",
+    "python -m pip install -r requirements.txt"
+]
 
 [start]
 cmd = "python main.py"
