@@ -1,6 +1,8 @@
 FROM python:3.11-slim
 
-# Install system dependencies for OpenCV
+WORKDIR /app
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
@@ -8,18 +10,19 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender1 \
     libgomp1 \
-    libgcc-s1 \
-    libstdc++6 \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-# Copy requirements first for better caching
+# Copy and install Python dependencies
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
+# Copy application code
 COPY . .
+
+# Set environment variable for port
+ENV PORT=8000
 
 # Expose port
 EXPOSE 8000
