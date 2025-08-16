@@ -48,35 +48,58 @@ def download_model():
     return os.path.exists(MODEL_PATH)
 
 
+import os
+from pathlib import Path
+from typing import Dict, Any, List
+import tempfile
+import shutil
+from contextlib import asynccontextmanager
+import requests  # Add this import
+
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
+
+# Import the fix BEFORE importing basketball_referee
+try:
+    import yolo_loader_fix
+except ImportError:
+    print("Warning: yolo_loader_fix not found")
+
+import cv2
+from basketball_referee import ImprovedFreeThrowScorer, CVATDatasetConverter, FreeThrowModelTrainer
+
+# Global variables
+MODEL_PATH = "best.pt"  # Relative path in the container
+MODEL_URL = "https://your-cloud-storage-url/best.pt"  # Replace with your model file URL
+scorer_instance = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Lifespan context manager for startup and shutdown events.
-    """
     global scorer_instance
-
     print("\n" + "=" * 60)
     print("AI BASKETBALL REFEREE API STARTING")
     print("=" * 60)
-    print(f"Environment: {ENVIRONMENT}")
-    print(f"Python version: {sys.version}")
+    print(f"Python file: {__file__}")
     print(f"Model path: {MODEL_PATH}")
 
-    # Try to download model if needed
+    # Download model if not exists
     if not os.path.exists(MODEL_PATH):
-        print("Model not found locally, attempting download...")
-        download_model()
+        print("Downloading model...")
+        try:
+            response = requests.get(MODEL_URL, timeout=30)
+            response.raise_for_status()
+            with open(MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print("✅ Model downloaded successfully!")
+        except Exception as e:
+            print(f"❌ Failed to download model: {e}")
+            import traceback
+            traceback.print_exc()
 
     print(f"Model exists: {os.path.exists(MODEL_PATH)}")
 
     if not os.path.exists(MODEL_PATH):
-        print("⚠️ Model file not found!")
-        print("The API will start but won't be able to process videos.")
-        print("You can:")
-        print("1. Upload a model using the /upload_model/ endpoint")
-        print("2. Train a new model using the /train_model/ endpoint")
-        print("3. Set MODEL_URL environment variable to download from cloud")
-        print("=" * 60 + "\n")
+        print("❌ Model file not found!")
     else:
         try:
             print("Loading model...")
@@ -89,16 +112,15 @@ async def lifespan(app: FastAPI):
             traceback.print_exc()
 
     print("=" * 60 + "\n")
-
     yield
 
+    # Shutdown logic
     print("\n" + "=" * 60)
     print("AI BASKETBALL REFEREE API SHUTTING DOWN")
     print("=" * 60)
     if scorer_instance:
         print("Cleaning up resources...")
     print("Goodbye!")
-
 
 # Create FastAPI app with lifespan
 print("Creating FastAPI app...")
