@@ -1,36 +1,21 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies with error handling
-RUN apt-get update || true && \
-    apt-get install -y --no-install-recommends \
-    libgl1 \
-    libglib2.0-0 \
-    libgomp1 \
-    wget \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* || true
+# Install system dependencies for OpenCV and PyTorch
+RUN apt-get update && apt-get install -y \
+    libopencv-dev \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip first
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt || \
-    (pip install --no-cache-dir --no-deps -r requirements.txt && \
-     pip install --no-cache-dir opencv-python-headless ultralytics fastapi uvicorn)
-
-# Copy application code
+# Copy project files
 COPY . .
 
-# Set environment variable for port
-ENV PORT=8000
-ENV PYTHONUNBUFFERED=1
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
+# Expose the port (Railway will override with $PORT)
 EXPOSE 8000
 
-# Run the application
-CMD ["python", "main.py"]
+# Command to run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "$PORT"]
