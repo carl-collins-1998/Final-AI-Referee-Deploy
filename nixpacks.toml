@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc", "libgcc", "libstdcxx", "libgomp", "glib", "libGL", "libglib", "libSM", "libXext", "libXrender", "libgomp"]
+
+[phases.install]
+cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+
+[start]
+cmd = "python main.py"
