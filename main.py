@@ -70,7 +70,7 @@ from basketball_referee import ImprovedFreeThrowScorer, CVATDatasetConverter, Fr
 
 # Global variables
 MODEL_PATH = "best.pt"  # Relative path in the container
-MODEL_URL = "https://your-cloud-storage-url/best.pt"  # Replace with your model file URL
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1gFM7iLnI_ea330JrG6LlZPKLIFu4Luj6/best.pt"  # Replace with your model file URL
 scorer_instance = None
 
 @asynccontextmanager

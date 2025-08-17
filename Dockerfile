@@ -13,11 +13,15 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
+# Ensure pip is installed
+RUN python -m ensurepip --upgrade \
+    && python -m pip install --no-cache-dir --upgrade pip
+
 # Copy project files
 COPY . .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Expose the port (Railway will override with $PORT)
 EXPOSE 8000
